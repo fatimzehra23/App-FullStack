@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCar, faUser } from '@fortawesome/free-solid-svg-icons';
 
 const Navbar = () => {
   return (
@@ -19,13 +21,15 @@ const Navbar = () => {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
             <li className="nav-item">
-              <Link className="nav-link" to="/">
-                📋 Liste des Voitures
+              <Link className="nav-link" to="/voitures">
+                <FontAwesomeIcon icon={faCar} className="me-1" />
+                Voitures
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="/add">
-                ➕ Ajouter une Voiture
+              <Link className="nav-link" to="/proprietaires">
+                <FontAwesomeIcon icon={faUser} className="me-1" />
+                Propriétaires
               </Link>
             </li>
           </ul>

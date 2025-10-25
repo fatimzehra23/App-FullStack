@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createVoiture, updateVoiture, getVoitureById } from '../services/VoitureService';
+import { getProprietaires } from '../services/ProprietaireService';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSave, faTimes, faUser } from '@fortawesome/free-solid-svg-icons';
 
 const VoitureForm = () => {
   const [voiture, setVoiture] = useState({
@@ -9,14 +12,30 @@ const VoitureForm = () => {
     couleur: '',
     immatricule: '',
     annee: '',
-    prix: ''
+    prix: '',
+    proprietaire: null
   });
+  const [proprietaires, setProprietaires] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   
   const navigate = useNavigate();
   const { id } = useParams();
 
+  // Charger les propriétaires au montage du composant
+  useEffect(() => {
+    console.log("📡 Chargement des propriétaires...");
+    getProprietaires()
+      .then(res => {
+        console.log("✅ Propriétaires chargés :", res.data);
+        setProprietaires(res.data);
+      })
+      .catch(err => {
+        console.error("❌ Erreur chargement propriétaires :", err);
+      });
+  }, []);
+
+  // Charger la voiture si on est en mode édition
   useEffect(() => {
     if (id) {
       setLoading(true);
@@ -39,16 +58,35 @@ const VoitureForm = () => {
     setVoiture({ ...voiture, [name]: value });
   };
 
+  const handleProprietaireChange = (e) => {
+    const proprietaireId = e.target.value;
+    
+    if (proprietaireId === "") {
+      // Aucun propriétaire sélectionné
+      setVoiture({ ...voiture, proprietaire: null });
+    } else {
+      // Propriétaire sélectionné
+      setVoiture({ 
+        ...voiture, 
+        proprietaire: { id: parseInt(proprietaireId) } 
+      });
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    // Convertir annee et prix en nombres
+    // Préparer les données à envoyer
     const voitureData = {
-      ...voiture,
+      marque: voiture.marque,
+      modele: voiture.modele,
+      couleur: voiture.couleur,
+      immatricule: voiture.immatricule,
       annee: parseInt(voiture.annee),
-      prix: parseInt(voiture.prix)
+      prix: parseInt(voiture.prix),
+      proprietaire: voiture.proprietaire
     };
 
     console.log("📤 Envoi données :", voitureData);
@@ -90,6 +128,7 @@ const VoitureForm = () => {
       <div className="card border-dark">
         <div className="card-body">
           <form onSubmit={handleSubmit}>
+            {/* Marque et Modèle */}
             <div className="row mb-3">
               <div className="col-md-6">
                 <label className="form-label">Marque *</label>
@@ -118,6 +157,7 @@ const VoitureForm = () => {
               </div>
             </div>
 
+            {/* Couleur et Immatricule */}
             <div className="row mb-3">
               <div className="col-md-6">
                 <label className="form-label">Couleur *</label>
@@ -146,6 +186,7 @@ const VoitureForm = () => {
               </div>
             </div>
 
+            {/* Année et Prix */}
             <div className="row mb-3">
               <div className="col-md-6">
                 <label className="form-label">Année *</label>
@@ -177,20 +218,48 @@ const VoitureForm = () => {
               </div>
             </div>
 
+            {/* SELECT PROPRIÉTAIRE - NOUVEAU */}
+            <div className="row mb-3">
+              <div className="col-md-12">
+                <label className="form-label">
+                  <FontAwesomeIcon icon={faUser} className="me-2" />
+                  Propriétaire (optionnel)
+                </label>
+                <select
+                  className="form-select"
+                  value={voiture.proprietaire?.id || ''}
+                  onChange={handleProprietaireChange}
+                >
+                  <option value="">-- Aucun propriétaire --</option>
+                  {proprietaires.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.prenom} {p.nom}
+                    </option>
+                  ))}
+                </select>
+                <small className="text-muted">
+                  Si aucun propriétaire n'est sélectionné, la voiture sera "Non assignée"
+                </small>
+              </div>
+            </div>
+
+            {/* Boutons */}
             <div className="d-flex justify-content-end gap-2">
               <button
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => navigate('/')}
               >
-                ❌ Annuler
+                <FontAwesomeIcon icon={faTimes} className="me-1" />
+                Annuler
               </button>
               <button
                 type="submit"
                 className="btn btn-success"
                 disabled={loading}
               >
-                {loading ? '⏳ Enregistrement...' : '💾 Enregistrer'}
+                <FontAwesomeIcon icon={faSave} className="me-1" />
+                {loading ? '⏳ Enregistrement...' : 'Enregistrer'}
               </button>
             </div>
           </form>
@@ -201,5 +270,3 @@ const VoitureForm = () => {
 };
 
 export default VoitureForm;
-
-
